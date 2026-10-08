@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+
+*.pth
+
+data/
+dataset/
+
+
+.DS_Store
+
+.ipynb_checkpoints/
