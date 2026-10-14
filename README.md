@@ -88,6 +88,34 @@ pip install torch torchvision scikit-learn matplotlib pillow
 
 Das Gerät wird automatisch gewählt (CUDA, Apple MPS oder CPU).
 
+Mit Docker
+
+Dann musst du weder Python noch PyTorch selbst einrichten. Das Image enthält nur den Code und die Abhängigkeiten. Den Datensatz hängst du beim Start als Ordner ein, und die Ergebnisse landen in output/ auf deinem Rechner.
+
+docker build -t covid-ct-classification .
+
+mkdir -p output
+cp best_model.pth output/
+
+docker run --rm \
+  -v "$(pwd)/data:/data" \
+  -v "$(pwd)/output:/app/output" \
+  covid-ct-classification
+
+Der Container wertet den Checkpoint auf dem Test-Set aus und schreibt die Confusion Matrix nach output/. Er rechnet auf der CPU und kommt dabei auf dieselben Zahlen wie mein lokaler Lauf.
+
+Zum Trainieren im Container hängst du den Befehl hinten an:
+
+docker run --rm \
+  -v "$(pwd)/data:/data" \
+  -v "$(pwd)/output:/app/output" \
+  covid-ct-classification python train.py
+
+Auf der CPU dauert das deutlich länger als auf einer GPU.
+
+
+
+
 ## Einschränkungen
 
 - **Keine Patienten-IDs im Datensatz.** Der Split erfolgt zufällig pro Bild, deshalb können sehr ähnliche Schnitte desselben Patienten sowohl im Trainings- als auch im Test-Set liegen. Die berichtete Test-Accuracy ist daher vermutlich optimistischer, als sie bei komplett neuen Patienten wäre.

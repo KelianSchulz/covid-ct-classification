@@ -1,26 +1,23 @@
-import numpy as np
-import pandas as pd
 import glob
 from PIL import Image
 import matplotlib.pyplot as plt
 from collections import Counter
-from pathlib import Path
+import os
 
 
 #Daten aus data Ordner holen und Anzahl herausfinden
+data_dir = os.environ.get("DATA_DIR", "data")
 
-dataset = Path("data")
+covid_dir = os.path.join(data_dir, "COVID")
+non_covid_dir = os.path.join(data_dir, "non-COVID")
 
-ordner_list = []
-labels = []
-for ordner in dataset.iterdir():
-    ordner_list.append(ordner.name)
-
-covid_data = glob.glob(f"data/{ordner_list[1]}/*")
-non_covid_data = glob.glob(f"data/{ordner_list[0]}/*")
+covid_data = glob.glob(os.path.join(covid_dir, "*"))
+non_covid_data = glob.glob(os.path.join(non_covid_dir, "*"))
 
 covid_data.sort()
 non_covid_data.sort()
+
+assert len(covid_data) > 0 and len(non_covid_data) > 0, "Ordner leer oder Pfad falsch"
 
 
 def show_images():
@@ -54,6 +51,7 @@ def show_images():
 # Daten Labeln.
 #Ordner_list[1] = covid, [0] = non_covid
 alle_dateien = []
+labels = []
 for datei in covid_data:
     alle_dateien.append(datei)
     labels.append(1)
@@ -64,20 +62,7 @@ for datei in non_covid_data:
     labels.append(0)
 
 
-# Größe der Bilder Überprüfen
-# Covid
-size_covid = []
-for datei in covid_data:
-    bild = Image.open(datei)
-    size_covid.append(bild.size)
 
-
-# Non_Covid    
-
-size_non_covid = []
-for datei in non_covid_data:
-    bild = Image.open(datei)
-    size_non_covid.append(bild.size)
 
 #Train, test split
 
@@ -108,7 +93,7 @@ random_state=42
 
 
 def data_loader_func():
-    from torchvision import torch as t, transforms
+    from torchvision import torch, transforms
 
 
     transforms_train = transforms.Compose([
@@ -170,10 +155,27 @@ def data_loader_func():
 
 
 if __name__ == "__main__":
-    print(ordner_list)
+
+# Größe der Bilder Überprüfen
+# Covid
+
+    size_covid = []
+    for datei in covid_data:
+        bild = Image.open(datei)
+        size_covid.append(bild.size)
+
+
+    # Non_Covid    
+
+    size_non_covid = []
+    for datei in non_covid_data:
+        bild = Image.open(datei)
+        size_non_covid.append(bild.size)
+
+
     print(len(covid_data))
     print(len(non_covid_data))
     print(len(alle_dateien))
     print(len(labels))
     print(Counter(size_covid).most_common(5))
-    print(Counter(size_non_covid).most_common(5))
+    print(Counter(size_non_covid).most_common(5))        

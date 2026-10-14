@@ -1,3 +1,4 @@
+import os
 import torch
 from sklearn.metrics import confusion_matrix, classification_report
 
@@ -6,6 +7,15 @@ from model import create_model
 
 import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay
+
+
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", ".")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+checkpoint_path = os.path.join(OUTPUT_DIR, "best_model.pth")
+matrix_path = os.path.join(OUTPUT_DIR, "confusion_matrix.png")
+
+
 
 def get_predictions(model, loader, device):
     model.eval()
@@ -45,16 +55,17 @@ if __name__ == "__main__":
     train_loader, val_loader, test_loader = data_loader_func()
 
     model = create_model()
-    model.load_state_dict(torch.load("best_model.pth", map_location=device))
+    model.load_state_dict(torch.load(checkpoint_path, map_location=device))
     model.to(device)
 
     true_labels, predicted_labels = get_predictions(model, test_loader, device)
 
     matrix = confusion_matrix(true_labels, predicted_labels)
+    print(classification_report(true_labels, predicted_labels, target_names=["non-COVID", "COVID"]))
     display = ConfusionMatrixDisplay(confusion_matrix=matrix, display_labels=["non-COVID", "COVID"])
     display.plot(cmap="Blues")
 
     plt.title("Confusion matrix (test set)")
-    plt.savefig("confusion_matrix.png", dpi=150, bbox_inches="tight")
+    plt.savefig(matrix_path, dpi=150, bbox_inches="tight")
     plt.show()
     

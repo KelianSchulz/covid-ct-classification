@@ -1,8 +1,14 @@
+import os
 from preprocess import data_loader_func
 import torch
 import torch.nn as nn
 from model import create_model
 
+
+OUTPUT_DIR = os.environ.get("OUTPUT_DIR", ".")
+os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+checkpoint_path = os.path.join(OUTPUT_DIR, "best_model.pth")
 
 
 if torch.cuda.is_available():
@@ -54,7 +60,7 @@ def train(model, loader, val_loader, loss_function, optimizer, device, num_epoch
 
         if val_accuracy > best_val_acc:
             best_val_acc = val_accuracy
-            torch.save(model.state_dict(), "best_model.pth")
+            torch.save(model.state_dict(), checkpoint_path)
             print("Best model saved")
 
     return best_val_acc
@@ -86,7 +92,7 @@ if __name__ == "__main__":
     best_accuracy = train(model, train_loader, val_loader, loss_function, optimizer, device)
     print("Best validation accuracy:", best_accuracy)
 
-    model.load_state_dict(torch.load("best_model.pth"))
+    model.load_state_dict(torch.load(checkpoint_path, map_location=device))
     model.to(device)
 
     test_accuracy = evaluate(model, test_loader, device)
